@@ -69,7 +69,7 @@
                 const blockchainData = JSON.stringify(myBlockchain);
 
                 // Make a request to the server
-                fetch(`http://localhost:3000/saveToMySQL?data=${encodeURIComponent(blockchainData)}`, {
+                fetch(`https://test-blockhain-tbhuyi94j-tests-projects-aa556c8c.vercel.app/saveToMySQL?data=${encodeURIComponent(blockchainData)}`, {
                     method: 'GET',
                 })
                 .then(response => response.text())
