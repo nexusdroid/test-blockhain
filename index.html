@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blockchain and MySQL Integration</title>
+</head>
+<body>
+
+    <form>
+        <input type="text" class="amount" id="amount">
+        <input type="button" class="submit" id="submit" value="Submit">
+    </form>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/crypto-js.js"></script>
+    <script>
+
+        let blockchainIndex = 1; // Initial index for the blockchain
+
+        $('.submit').click(function(e) {
+            e.preventDefault();
+
+            const input = $('.amount').val();
+            const date = new Date().toISOString().replace(/T/, ' ').replace(/\..+/, ''); // Format YYYY-mm-dd hh:mm:ss
+
+            const SHA256 = CryptoJS.SHA256;
+        
+            class Block {
+                constructor(index, timestamp, data, previousHash = '') {
+                    this.index = index;
+                    this.timestamp = timestamp;
+                    this.data = data;
+                    this.previousHash = previousHash;
+                    this.hash = this.calculateHash();
+                }
+
+                calculateHash() {
+                    return SHA256(this.index + this.timestamp + JSON.stringify(this.data) + this.previousHash).toString();
+                }
+            }
+
+            class Blockchain {
+                constructor() {
+                    this.chain = [this.createGenesisBlock()];
+                }
+
+                createGenesisBlock() {
+                    return new Block(0, '01/01/2023', 'Genesis Block', '0');
+                }
+
+                addBlock(newBlock) {
+                    newBlock.previousHash = this.chain[this.chain.length - 1].hash;
+                    newBlock.hash = newBlock.calculateHash();
+                    this.chain.push(newBlock);
+                }
+            }
+
+            // Create an instance of the Blockchain class
+            const myBlockchain = new Blockchain();
+
+            // Example usage
+            myBlockchain.addBlock(new Block(blockchainIndex++, date, { amount: input }));
+
+            // Save to MySQL using the server
+            saveToMySQL();
+
+            function saveToMySQL() {
+                const blockchainData = JSON.stringify(myBlockchain);
+
+                // Make a request to the server
+                fetch(`http://localhost:3000/saveToMySQL?data=${encodeURIComponent(blockchainData)}`, {
+                    method: 'GET',
+                })
+                .then(response => response.text())
+                .then(data => console.log(data))
+                .catch(error => console.error('Error:', error));
+            }
+        })
+        
+    </script>
+</body>
+</html>
